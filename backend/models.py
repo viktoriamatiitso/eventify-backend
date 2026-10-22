@@ -34,9 +34,9 @@ class Event(models.Model):
         validators = [MinValueValidator(1), MaxValueValidator(99999)]
         )
     date = models.DateTimeField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="events")
-    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name="events")
-    venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="events")
+    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="events")
+    artist = models.ForeignKey(Artist, on_delete=models.PROTECT, related_name="events")
+    venue = models.ForeignKey(Venue, on_delete=models.PROTECT, related_name="events")
 
     def __str__(self):
         return self.title

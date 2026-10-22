@@ -46,9 +46,9 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True)),
                 ('price', models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(99999)])),
                 ('date', models.DateTimeField()),
-                ('artist', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='events', to='backend.artist')),
-                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='events', to='backend.category')),
-                ('venue', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='events', to='backend.venue')),
+                ('artist', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='events', to='backend.artist')),
+                ('category', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='events', to='backend.category')),
+                ('venue', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='events', to='backend.venue')),
             ],
         ),
     ]
