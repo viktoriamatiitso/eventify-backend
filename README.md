@@ -1,122 +1,154 @@
-# web-programming-2026-template
+# Eventify - Платформа для купівлі квитків на події
 
-A reusable Django project with no bundled application, SQLite, and Django's
-standard admin, authentication, sessions, messages, and staticfiles support.
+## 📖 Опис та бізнес-логіка сайту
 
-## Local setup
+**Eventify** - це сайт для перегляду та купівлі квитків на різноманітні культурні та розважальні заходи (концерти, стендапи, театральні вистави, тощо). Сайт допомагає користувачам швидко знаходити цікаві події, фільтрувати їх за категоріями, майданчиками чи артистами, переглядати детальний опис заходу та купувати квитки.
 
-Requires the latest patch release of Python 3.12, 3.13, or 3.14. Run these commands from the project directory containing
-`manage.py`.
+### Що є на сайті з точки зору бізнес-логіки:
+- **Каталог подій:**  Головна сторінка зі списком усіх заходів, пошуком за назвою, фільтрами (за категорією, майданчиком, тощо) та сортуванням (за ціною, датою проведення чи популярністю).
+- **Сторінка події:**  Детальна інформація про конкретний захід, дата і час, вартість квитка, інформація про виконавця та локацію, а також кнопка купівлі.
+- **Сторінка артистів:**  Список усіх виконавців/артистів. При переході на сторінку конкретного артиста відображаються всі його майбутні події.
+- **Сторінка майданчиків (локацій):**  Перелік концертних залів, клубів чи театрів із можливістю переглянути події, які там відбуватимуться.
+- **Авторизація та профіль:**  Можливість зареєструватися, зайти в акаунт, редагувати особисті дані та переглядати історію купівлі квитків.
+- **Кошик і замовлення:**  Можливість додавати квитки на події в кошик та створювати замовлення однією кнопкою.
+- **Інформаційна сторінка (Про нас):**  Контактні дані платформи, інформація про правила відвідування заходів та умови повернення квитків.
 
-1. Create and activate a virtual environment:
+---
 
-   ```bash
-   python -m venv .venv
-   
-   # for linux/macos
-   source .venv/bin/activate
-   # for Windows:
-   .venv\Scripts\activate
-   ```
+## ⚙️ Архітектура REST API
 
-2. Install dependencies:
+Усі запити та відповіді передаються у форматі **JSON**.
 
-   ```bash
-   python -m pip install -r requirements-dev.txt
-   ```
+### 📌 Endpoint: Події (Events)
+- **GET `/api/events`**
+  - *Опис:* Отримати список усіх подій з можливістю пошуку, фільтрації та сортування.
+  - *Query Parameters:* `search`, `category_id`, `venue_id`, `sort_by`.
+  - *Response Status:* 200 OK
+  - *Response Body:* 
+    ```json
+    [
+      {
+        "id": 1,
+        "title": "СТЕНДАП ЗЙОМКА",
+        "description": "Вітаємо! Хочете гарно провести час? Тоді вам на зйомку нового шоу!",
+        "price": 450.00,
+        "date": "2026-11-20T19:00:00Z",
+        "category_id": 2,
+        "artist_id": 5,
+        "venue_id": 3
+      }
+    ]
+    ```
 
+- **GET `/api/events/{id}`**
+  - *Опис:* Отримати детальну інформацію про конкретну подію за її ID.
+  - *Response Status:* 200 OK 
+  - *Response Body:*
+    ```json
+    {
+      "id": 1,
+      "title": "СТЕНДАП ЗЙОМКА",
+      "description": "Вітаємо! Хочете гарно провести час? Тоді вам на зйомку нового шоу!",
+      "price": 450,
+      "date": "2026-11-20T19:00:00Z",
+      "category": { "id": 2, "name": "Стендап" },
+      "artist": { "id": 5, "name": "Дмитро Тютюн" },
+      "venue": { "id": 3, "name": "Бочка PUB", "city": "Київ" }
+    }
+    ```
 
-3. Apply migrations to create the local SQLite database:
+- **POST `/api/events`**
+  - *Опис:* Додати нову подію.
+  - *Request Body:*
+    ```json
+    {
+      "title": "NIKOW Сольний концерт",
+      "description": "Концерт Нікова - вечір живої музики, улюблених треків та незабутніх емоцій.",
+      "price": 1200,
+      "date": "2026-12-01T18:00:00Z",
+      "category_id": 1,
+      "artist_id": 3,
+      "venue_id": 2
+    }
+    ```
+  - *Response Status:* 201 Created
 
-   ```bash
-   python manage.py migrate
-   ```
+- **PUT `/api/events/{id}`**
+  - *Опис:* Оновити інформацію про подію.
+  - *Request Body:* (поля для оновлення)
+  - *Response Status:* 200 OK
 
-4. Start the development server:
+- **DELETE `/api/events/{id}`**
+  - *Опис:* Видалити подію.
+  - *Response Status:* 204 No Content
 
-   ```bash
-   python manage.py runserver
-   ```
+---
 
-## Endpoints
+### 📌 Endpoint: Артисти (Artists)
+- **GET `/api/artists`** - отримати список усіх артистів. *(Status: 200 OK)*
+- **GET `/api/artists/{id}`** - отримати деталі артиста та список його подій. *(Status: 200 OK)*
+- **POST `/api/artists`** - додати нового артиста. *(Status: 201 Created)*
+- **PUT `/api/artists/{id}`** - оновити дані артиста. *(Status: 200 OK)*
+- **DELETE `/api/artists/{id}`** - видалити артиста. *(Status: 204 No Content)*
 
-With the server running at `http://127.0.0.1:8000`:
+---
 
-| URL | Behavior |
-| --- | --- |
-| http://127.0.0.1:8000/ | No application homepage; may show Django's development welcome page while `DEBUG = True` |
-| http://127.0.0.1:8000/admin/ | Django admin, available after applying migrations |
+### 📌 Endpoint: Майданчики (Venues)
+- **GET `/api/venues`** - отримати список усіх майданчиків. *(Status: 200 OK)*
+- **GET `/api/venues/{id}`** - отримати деталі майданчика та події на ньому. *(Status: 200 OK)*
+- **POST `/api/venues`** - додати новий майданчик. *(Status: 201 Created)*
+- **PUT `/api/venues/{id}`** - оновити майданчик. *(Status: 200 OK)*
+- **DELETE `/api/venues/{id}`** - видалити майданчик. *(Status: 204 No Content)*
 
-With `DEBUG = False`, unmatched URLs such as `/` return HTTP 404.
+---
 
-To create an account for admin login, run this after applying migrations:
+### 📌 Endpoint: Реєстрація та авторизація (Auth)
+- **POST `/api/auth/register`**
+  - *Опис:* Реєстрація нового користувача.
+  - *Request Body:* 
+  `{"first_name": "Олена", "last_name": "Мельник", "email": "elena@example.com", "password": "securepassword123"}`
+  - *Response Status:* 201 Created
+- **POST `/api/auth/login`**
+  - *Опис:* Авторизація користувача.
+  - *Request Body:* `{"email": "elena@example.com", "password": "securepassword123"}`
+  - *Response Status:* 200 OK 
 
-```bash
-python manage.py createsuperuser
-```
+---
 
-## Add your first application
+### 📌 Endpoint: Профіль (Users)
+- **GET `/api/users/{id}`**
+  - *Опис:* Отримати профіль користувача за ID.
+  - *Response Status:* 200 OK
+- **PUT `/api/users/{id}`**
+  - *Опис:* Оновити дані профілю користувача.
+  - *Response Status:* 200 OK
 
-1. Create an app from the directory containing `manage.py` (replace `myapp`
-   with your application name):
+---
 
-   ```bash
-   python manage.py startapp myapp
-   ```
+### 📌 Endpoint: Кошик (Cart)
+- **GET `/api/cart`**
+  - *Опис:* Переглянути товари (квитки), додані в кошик.
+  - *Response Status:* 200 OK
+- **POST `/api/cart`**
+  - *Опис:* Додати квиток на подію в кошик.
+  - *Request Body:* `{"user_id": 1, "event_id": 1, "amount": 2}`
+  - *Response Status:* 201 Created
+- **DELETE `/api/cart/{id}`**
+  - *Опис:* Видалити позицію з кошика.
+  - *Response Status:* 204 No Content
 
-2. Add its generated configuration class, `myapp.apps.MyappConfig`, to
-   `INSTALLED_APPS` in `config/settings.py`.
-3. Define your views and create `myapp/urls.py` with their URL patterns.
-4. Register that URLconf in `config/urls.py` using `path()` and `include()`,
-   choosing a URL prefix for the app and retaining the admin route.
+---
 
-See the official Django 6.1 tutorial for
-[views and URL registration](https://docs.djangoproject.com/en/6.1/intro/tutorial01/)
-and [app registration and models](https://docs.djangoproject.com/en/6.1/intro/tutorial02/).
+### 📌 Endpoint: Замовлення (Orders)
+- **POST `/api/orders`**
+  - *Опис:* Створити замовлення на основі кошика.
+  - *Response Status:* 201 Created
+- **GET `/api/orders`**
+  - *Опис:* Переглянути історію замовлень авторизованого користувача.
+  - *Response Status:* 200 OK
 
-## Start a REST API
+---
 
-Django REST framework and `django-cors-headers` are included and configured.
-Install the project dependencies with `python -m pip install -r requirements-dev.txt`.
-Create your own app, serializers, views, and URL patterns; no API app or
-authentication scheme is supplied.
+## 🗃️ Схема бази даних
 
-## Git attributes
-
-Git detects text files automatically and normalizes them to LF. Checkouts use
-LF on Linux and Windows, while `.bat` and `.cmd` files use CRLF. Binary files
-are auto-detected and left unchanged, helping avoid newline-only diffs.
-
-
-## Code style and submission verification
-
-All submissions are required to adhere to PEP-8, Django best practices, and standard HTML/CSS/JS formatting. A deterministic cross-platform utility is provided to help you check and format your code.
-
-### 1. Verification (Check Mode)
-Before submitting, verify that all files adhere to the required standards:
-
-```bash
-python check_submission.py
-```
-
-Passing these checks confirms code style, not functional API behavior. Before submitting an API, also write and run functional tests for its endpoints. If style checks fail, review the error output or run the auto-formatter below.
-
-### 2. Auto-Formatting
-To automatically format Python files, fix safe PEP-8 rules, format Django HTML templates, and format CSS/JS static files:
-
-```bash
-python check_submission.py --format
-```
-
-### 3. PyCharm Integration
-If you use PyCharm:
-- **One-Click Run:** In the top-right toolbar run configurations dropdown, select **"Verify Submission"** or **"Format Project"** and click the green **Play** button.
-
-## Development only
-
-The included settings use `DEBUG = True`, a development secret key, and a local
-SQLite database. The default mailer uses the console backend: email is printed
-to the process's console instead of being delivered.
-
-This configuration and Django's development server are not suitable for
-production deployment.
+![Схема бази даних](images/db_scheme.jpg)
