@@ -42,4 +42,39 @@ class EventDetail(APIView):
                 status=status.HTTP_409_CONFLICT,
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
-        
+    
+class ArtistList(APIView):
+    def get(self,request):
+        artists = Artist.objects.all()
+        serializer = ArtistSerializer(artists, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        serializer = ArtistSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+class ArtistDetail(APIView):
+    def get(self, request, id):
+        artist = get_object_or_404(Artist,id=id)
+        serializer = ArtistSerializer(artist)
+        return Response(serializer.data)
+    
+    def put(self, request, id):
+        artist = get_object_or_404(Artist, id=id)
+        serializer = ArtistSerializer(artist, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+    
+    def delete(self, request, id):
+        artist = get_object_or_404(Artist, id=id)
+        try:
+            artist.delete()
+        except ProtectedError:
+            return Response(
+                {"error": "Неможливо видалити об'єкт, оскільки з ним пов'язані інші дані"},
+                status=status.HTTP_409_CONFLICT,
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
