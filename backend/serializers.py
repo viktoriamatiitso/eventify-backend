@@ -7,10 +7,16 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ["id", "name"]
 
+class EventForArtistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Event
+        fields = ["id", "title", "date", "price"]
+
 class ArtistSerializer(serializers.ModelSerializer):
+    events = EventForArtistSerializer(many=True, read_only=True)
     class Meta: 
         model = Artist
-        fields = "__all__"
+        fields = ["id", "name", "description", "events"]
 
 class VenueSerializer(serializers.ModelSerializer):
     class Meta:
