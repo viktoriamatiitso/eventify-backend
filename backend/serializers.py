@@ -18,6 +18,9 @@ class VenueSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "description", "city", "address"]
 
 class EventSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    artist = ArtistSerializer(read_only=True)
+    venue = VenueSerializer(read_only=True)
     class Meta:
         model = Event 
         fields = ["id", "title", "description", "price", "date", "category", "artist", "venue"]
