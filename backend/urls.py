@@ -6,4 +6,6 @@ urlpatterns = [
     path("events/<int:id>/", views.EventDetail.as_view()),
     path("artists/", views.ArtistList.as_view()),
     path("artists/<int:id>/", views.ArtistDetail.as_view()),
+    path("venues/", views.VenueList.as_view()),
+    path("venues/<int:id>/", views.VenueDetail.as_view())
 ]
