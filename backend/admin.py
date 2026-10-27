@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Category, Artist, Venue, Event
+
+from .models import Artist, Category, Event, Venue
+
 # Register your models here.
 
 admin.site.register(Category)
