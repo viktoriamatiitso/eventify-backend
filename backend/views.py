@@ -1,3 +1,134 @@
-from django.shortcuts import render
+from django.db.models import ProtectedError
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Artist, Event, Venue
+from .serializers import (
+    ArtistSerializer,
+    EventSerializer,
+    VenueSerializer,
+)
 
 # Create your views here.
+
+
+class EventList(APIView):
+    def get(self, request):
+        events = Event.objects.all()
+        serializer = EventSerializer(events, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = EventSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class EventDetail(APIView):
+    def get(self, request, id):
+        event = get_object_or_404(Event, id=id)
+        serializer = EventSerializer(event)
+        return Response(serializer.data)
+
+    def put(self, request, id):
+        event = get_object_or_404(Event, id=id)
+        serializer = EventSerializer(event, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, id):
+        event = get_object_or_404(Event, id=id)
+        try:
+            event.delete()
+        except ProtectedError:
+            return Response(
+                {
+                    "error": "Неможливо видалити об'єкт, оскільки з ним пов'язані інші дані"
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ArtistList(APIView):
+    def get(self, request):
+        artists = Artist.objects.all()
+        serializer = ArtistSerializer(artists, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = ArtistSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ArtistDetail(APIView):
+    def get(self, request, id):
+        artist = get_object_or_404(Artist, id=id)
+        serializer = ArtistSerializer(artist)
+        return Response(serializer.data)
+
+    def put(self, request, id):
+        artist = get_object_or_404(Artist, id=id)
+        serializer = ArtistSerializer(artist, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, id):
+        artist = get_object_or_404(Artist, id=id)
+        try:
+            artist.delete()
+        except ProtectedError:
+            return Response(
+                {
+                    "error": "Неможливо видалити об'єкт, оскільки з ним пов'язані інші дані"
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class VenueList(APIView):
+    def get(self, request):
+        venues = Venue.objects.all()
+        serializer = VenueSerializer(venues, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = VenueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class VenueDetail(APIView):
+    def get(self, request, id):
+        venue = get_object_or_404(Venue, id=id)
+        serializer = VenueSerializer(venue)
+        return Response(serializer.data)
+
+    def put(self, request, id):
+        venue = get_object_or_404(Venue, id=id)
+        serializer = VenueSerializer(venue, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, id):
+        venue = get_object_or_404(Venue, id=id)
+        try:
+            venue.delete()
+        except ProtectedError:
+            return Response(
+                {
+                    "error": "Неможливо видалити об'єкт, оскільки з ним пов'язані інші дані"
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
