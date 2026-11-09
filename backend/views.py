@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 
 from .models import Artist, Event, Venue
 from .serializers import (
@@ -15,6 +16,12 @@ from .serializers import (
 
 
 class EventList(APIView):
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsAdminUser()]
+        return [AllowAny()]
+    
     def get(self, request):
         events = Event.objects.all()
         serializer = EventSerializer(events, many=True)
@@ -28,6 +35,12 @@ class EventList(APIView):
 
 
 class EventDetail(APIView):
+
+    def get_permissions(self):
+        if self.request.method in ["PUT", "DELETE"]:
+            return [IsAdminUser()]
+        return [AllowAny()]
+    
     def get(self, request, id):
         event = get_object_or_404(Event, id=id)
         serializer = EventSerializer(event)
@@ -55,6 +68,12 @@ class EventDetail(APIView):
 
 
 class ArtistList(APIView):
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsAdminUser()]
+        return [AllowAny()]
+    
     def get(self, request):
         artists = Artist.objects.all()
         serializer = ArtistSerializer(artists, many=True)
@@ -68,6 +87,12 @@ class ArtistList(APIView):
 
 
 class ArtistDetail(APIView):
+
+    def get_permissions(self):
+        if self.request.method in ["PUT", "DELETE"]:
+            return [IsAdminUser()]
+        return [AllowAny()]
+    
     def get(self, request, id):
         artist = get_object_or_404(Artist, id=id)
         serializer = ArtistSerializer(artist)
@@ -95,6 +120,12 @@ class ArtistDetail(APIView):
 
 
 class VenueList(APIView):
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsAdminUser()]
+        return [AllowAny()]
+    
     def get(self, request):
         venues = Venue.objects.all()
         serializer = VenueSerializer(venues, many=True)
@@ -108,6 +139,12 @@ class VenueList(APIView):
 
 
 class VenueDetail(APIView):
+
+    def get_permissions(self):
+        if self.request.method in ["PUT", "DELETE"]:
+            return [IsAdminUser()]
+        return [AllowAny()]
+    
     def get(self, request, id):
         venue = get_object_or_404(Venue, id=id)
         serializer = VenueSerializer(venue)
