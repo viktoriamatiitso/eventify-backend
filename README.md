@@ -15,6 +15,18 @@
 
 ---
 
+## 🔐 Аутентифікація, Авторизація та JWT
+
+Для доступу до захищених ендпоінтів використовується **JWT (JSON Web Token)** механізм автентифікації. 
+
+### Як передавати токен у заголовках (Headers):
+Усі захищені запити вимагають наявності заголовка `Authorization` у такому форматі:
+```http
+Authorization: Bearer <ваш_access_token>
+```
+
+--- 
+
 ## ⚙️ Архітектура REST API
 
 Усі запити та відповіді передаються у форматі **JSON**.
@@ -175,7 +187,18 @@
 
 - **PUT `/api/events/{id}`**
   - *Опис:* Оновити інформацію про подію.
-  - *Request Body:* (поля для оновлення)
+  - *Request Body:* 
+    ```json
+    {
+      "title": "сольний концерт",
+      "description": "Презентація альбому",
+      "price": 800.00,
+      "date": "2026-11-20T19:00:00Z",
+      "category_id": 1,
+      "artist_id": 1,
+      "venue_id": 1
+    }
+    ```
   - *Response Status:* 200 OK
 
 - **DELETE `/api/events/{id}`**
@@ -204,23 +227,101 @@
 
 ### 📌 Endpoint: Реєстрація та авторизація (Auth)
 - **POST `/api/auth/register`**
-  - *Опис:* Реєстрація нового користувача.
+  - *Опис:* Реєстрація нового користувача з перевіркою валідації полів та збігу паролів.
   - *Request Body:* 
-  `{"first_name": "Олена", "last_name": "Мельник", "email": "elena@example.com", "password": "securepassword123"}`
+    ```json
+    {
+      "username": "viktoria",
+      "first_name": "Вікторія",
+      "email": "viktoria@example.com",
+      "password": "Qwerty123!",
+      "password_confirmation": "Qwerty123!"
+    }
+    ```
+  - *Response Body:*
+    ```json
+    {
+      "id": 4,
+      "username": "viktoria",
+      "first_name": "Вікторія",
+      "last_name": "",
+      "email": "viktoria@example.com"
+    }
+    ```
   - *Response Status:* 201 Created
 - **POST `/api/auth/login`**
-  - *Опис:* Авторизація користувача.
-  - *Request Body:* `{"email": "elena@example.com", "password": "securepassword123"}`
+  - *Опис:* Авторизація користувача та отримання токенів.
+  - *Request Body:* 
+    ```json
+    {
+      "username": "viktoria",
+      "password": "Qwerty123!"
+    }
+    ```
+  - *Response Body:*
+    ```json
+    {
+      "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc5Mzk5Mzk1NSwiaWF0IjoxNzkzOTA3NTU1LCJqdGkiOiI5NWQzZjAxNWM0OGU0Y2NiYjI4MjVmYmE3Y2Y3ZmJmMCIsInVzZXJfaWQiOjR9.3zP4X-P6EBlrXZQiJyrobKz3sKZ9_HP9on6FXxyA8Hg",
+      "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzkzOTExMTU1LCJpYXQiOjE3OTM5MDc1NTUsImp0aSI6ImI0MTJhYThiYzgxNTRhNTJiYjMxMjgzNjgwYzYyYjY3IiwidXNlcl9pZCI6NH0.nQEXJRo8xuY4D0cbrVzTrxNxSGgcgoIN7f_fxJ91_Hc"
+    }
+    ```
+  - *Response Status:* 200 OK 
+- **POST `api/auth/token/refresh`**
+  - *Опис:* Оновлення `access`-токена за допомогою `refresh`-токена.
+  - *Request Body:* 
+    ```json
+    {
+      "refresh": "<ваш_refresh_токен>"
+    }
+    ```
+  - *Response Body:*
+    ```json
+    {
+      "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzkzOTEyMTU5LCJpYXQiOjE3OTM5MDg1NTksImp0aSI6IjQ0ZWE5ZWQ2NGNlMjQ5NDdhMWU2OTA2Y2RmODg3OTI4IiwidXNlcl9pZCI6NH0.rDO8amDl267Zw4tHvDyhYiBDe7bR-5ajXwEC4l6On-Q"
+    }
+    ```
   - *Response Status:* 200 OK 
 
 ---
 
 ### 📌 Endpoint: Профіль (Users)
-- **GET `/api/users/{id}`**
-  - *Опис:* Отримати профіль користувача за ID.
+- **GET `/api/auth/users/{id}`**
+  - *Опис:* Отримати профіль користувача за ID (вимагає авторизації).
+  - *Headers:* `Authorization: Bearer <token>`
+  - *Response Body:*
+    ```json
+    {
+      "id": 4,
+      "username": "viktoria",
+      "first_name": "Вікторія",
+      "last_name": "",
+      "email": "viktoria@example.com"
+    }
+    ```
   - *Response Status:* 200 OK
-- **PUT `/api/users/{id}`**
-  - *Опис:* Оновити дані профілю користувача.
+- **PUT `/api/auth/users/{id}`**
+  - *Опис:* Оновити дані профілю користувача (перевіряє, чи редагує користувач власний профіль).
+  - *Headers:* `Authorization: Bearer <token>`
+  - *Request Body:* 
+    ```json
+    {
+      "username": "viktoria",
+      "first_name": "Вікторія",
+      "email": "vika@example.com",
+      "password": "Qwerty123!",
+      "password_confirmation": "Qwerty123!"
+    }
+    ```
+  - *Response Body:*
+    ```json
+    {
+      "id": 4,
+      "username": "viktoria",
+      "first_name": "Вікторія",
+      "last_name": "",
+      "email": "vika@example.com"
+    }
+    ```
   - *Response Status:* 200 OK
 
 ---
@@ -248,6 +349,16 @@
   - *Response Status:* 200 OK
 
 ---
+
+## 🛡️ Права доступу (Permissions)
+
+У проєкті реалізовано надійне розмежування прав:
+- **Публічні ендпоінти (`AllowAny`)**: Перегляд списків подій, артистів та майданчиків доступний усім користувачам (гостям).
+- **Адміністративні ендпоінти (`IsAdminUser`)**: Операції створення (POST), редагування (PUT) та видалення (DELETE) ресурсів дозволені виключно адміністраторам.
+- **Захищені ендпоінти (`IsAuthenticated / перевірка власності`)**: Доступ до профілю та його редагування вимагають дійсного JWT-токена та перевірки на відповідність користувача.
+- **Статуси помилок доступу:**
+  - `401 Unauthorized` - токен відсутній або протух.
+  - `403 Forbidden` - недостатньо прав (ролі) для виконання дії або спроба редагування чужого профілю.
 
 ## 🗃️ Схема бази даних
 
