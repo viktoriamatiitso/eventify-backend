@@ -30,3 +30,15 @@ def event():
         artist=artist,
         venue=venue,
     )
+
+@pytest.fixture(autouse=True)
+def delete_db_before_test():
+    Event.objects.all().delete()
+
+@pytest.fixture(scope="function")
+def superuser():
+    yield User.objects.create_superuser(
+        username="adminuser",
+        password="1234",
+        email="adminuser@example.com",
+    )
