@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import logging
 
 from .models import Artist, Event, Venue
 from .serializers import (
@@ -14,6 +15,7 @@ from .serializers import (
 
 # Create your views here.
 
+logger = logging.getLogger(__name__)
 
 class EventList(APIView):
     def get_permissions(self):
@@ -22,6 +24,7 @@ class EventList(APIView):
         return [AllowAny()]
 
     def get(self, request):
+        logger.debug("Запит списку подій")
         events = Event.objects.all()
         serializer = EventSerializer(events, many=True)
         return Response(serializer.data)
@@ -29,7 +32,8 @@ class EventList(APIView):
     def post(self, request):
         serializer = EventSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        event = serializer.save()
+        logger.info(f"Адміністратор id={request.user.id} створив подію id={event.id}")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -40,6 +44,7 @@ class EventDetail(APIView):
         return [AllowAny()]
 
     def get(self, request, id):
+        logger.debug(f"Запит події id={id}")
         event = get_object_or_404(Event, id=id)
         serializer = EventSerializer(event)
         return Response(serializer.data)
@@ -48,7 +53,8 @@ class EventDetail(APIView):
         event = get_object_or_404(Event, id=id)
         serializer = EventSerializer(event, data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        event = serializer.save()
+        logger.info(f"Адміністратор id={request.user.id} оновив подію id={event.id}")
         return Response(serializer.data)
 
     def delete(self, request, id):
@@ -56,12 +62,14 @@ class EventDetail(APIView):
         try:
             event.delete()
         except ProtectedError:
+            logger.warning(f"Подію id={id} не видалено: є пов'язані дані")
             return Response(
                 {
                     "error": "Неможливо видалити об'єкт, оскільки з ним пов'язані інші дані"
                 },
                 status=status.HTTP_409_CONFLICT,
             )
+        logger.info(f"Адміністратор id={request.user.id} видалив подію id={id}")
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -72,6 +80,7 @@ class ArtistList(APIView):
         return [AllowAny()]
 
     def get(self, request):
+        logger.debug("Запит списку артистів")
         artists = Artist.objects.all()
         serializer = ArtistSerializer(artists, many=True)
         return Response(serializer.data)
@@ -79,7 +88,8 @@ class ArtistList(APIView):
     def post(self, request):
         serializer = ArtistSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        artist = serializer.save()
+        logger.info(f"Адміністратор id={request.user.id} створив артиста id={artist.id}")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -90,6 +100,7 @@ class ArtistDetail(APIView):
         return [AllowAny()]
 
     def get(self, request, id):
+        logger.debug(f"Запит артиста id={id}")
         artist = get_object_or_404(Artist, id=id)
         serializer = ArtistSerializer(artist)
         return Response(serializer.data)
@@ -99,6 +110,7 @@ class ArtistDetail(APIView):
         serializer = ArtistSerializer(artist, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        logger.info(f"Адміністратор id={request.user.id} оновив артиста id={artist.id}")
         return Response(serializer.data)
 
     def delete(self, request, id):
@@ -106,12 +118,14 @@ class ArtistDetail(APIView):
         try:
             artist.delete()
         except ProtectedError:
+            logger.warning(f"Артиста id={id} не видалено: є пов'язані дані")
             return Response(
                 {
                     "error": "Неможливо видалити об'єкт, оскільки з ним пов'язані інші дані"
                 },
                 status=status.HTTP_409_CONFLICT,
             )
+        logger.info(f"Адміністратор id={request.user.id} видалив артиста id={id}")
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -122,6 +136,7 @@ class VenueList(APIView):
         return [AllowAny()]
 
     def get(self, request):
+        logger.debug("Запит списку майданчиків")
         venues = Venue.objects.all()
         serializer = VenueSerializer(venues, many=True)
         return Response(serializer.data)
@@ -129,7 +144,8 @@ class VenueList(APIView):
     def post(self, request):
         serializer = VenueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        venue = serializer.save()
+        logger.info(f"Адміністратор id={request.user.id} створив майданчик id={venue.id}")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -140,6 +156,7 @@ class VenueDetail(APIView):
         return [AllowAny()]
 
     def get(self, request, id):
+        logger.debug(f"Запит майданчика id={id}")
         venue = get_object_or_404(Venue, id=id)
         serializer = VenueSerializer(venue)
         return Response(serializer.data)
@@ -149,6 +166,7 @@ class VenueDetail(APIView):
         serializer = VenueSerializer(venue, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        logger.info(f"Адміністратор id={request.user.id} оновив майданчик id={venue.id}")
         return Response(serializer.data)
 
     def delete(self, request, id):
@@ -156,10 +174,12 @@ class VenueDetail(APIView):
         try:
             venue.delete()
         except ProtectedError:
+            logger.warning(f"Майданчик id={id} не видалено: є пов'язані дані")
             return Response(
                 {
                     "error": "Неможливо видалити об'єкт, оскільки з ним пов'язані інші дані"
                 },
                 status=status.HTTP_409_CONFLICT,
             )
+        logger.info(f"Адміністратор id={request.user.id} видалив майданчик id={id}")
         return Response(status=status.HTTP_204_NO_CONTENT)
