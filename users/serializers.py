@@ -1,8 +1,11 @@
+import logging
 import re
 
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+
+logger = logging.getLogger(__name__)
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -45,6 +48,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs.get("password") != attrs.get("password_confirmation"):
+            logger.warning("Реєстрація: паролі не збігаються")
             raise serializers.ValidationError(
                 {"password_confirmation": "Паролі не збігаються!"}
             )
@@ -52,18 +56,22 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate_password(self, value):
         if not re.search(r"[A-Z]", value):
+            logger.warning("Реєстрація: пароль без великої літери")
             raise serializers.ValidationError(
                 "Пароль має містити хоча б одну велику літеру [A-Z]"
             )
         if not re.search(r"[a-z]", value):
+            logger.warning("Реєстрація: пароль без маленької літери")
             raise serializers.ValidationError(
                 "Пароль має містити хоча б одну маленьку літеру [a-z]"
             )
         if not re.search(r"[!@#$%^&*]", value):
+            logger.warning("Реєстрація: пароль без спецсимволу")
             raise serializers.ValidationError(
                 "Пароль має містити хоча б один спеціальний символ [!@#$%^&*]"
             )
         if not re.search(r"[0-9]", value):
+            logger.warning("Реєстрація: пароль без цифри")
             raise serializers.ValidationError(
                 "Пароль має містити хоча б одну цифру[0-9]"
             )

@@ -1,7 +1,11 @@
+import logging
+
 from django.utils import timezone
 from rest_framework import serializers
 
 from .models import Artist, Category, Event, Venue
+
+logger = logging.getLogger(__name__)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -64,10 +68,12 @@ class EventSerializer(serializers.ModelSerializer):
 
     def validate_price(self, value):
         if value < 0:
+            logger.warning("Валідація події: від'ємна ціна")
             raise serializers.ValidationError("Ціна не може бути від'ємною")
         return value
 
     def validate_date(self, value):
         if value < timezone.now():
+            logger.warning("Валідація події: дата в минулому")
             raise serializers.ValidationError("Не можна додавати минувші події")
         return value
