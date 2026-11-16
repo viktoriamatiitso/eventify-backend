@@ -1,23 +1,24 @@
-from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
-from rest_framework import generics, status
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
 import logging
 
-from .serializers import RegisterSerializer, UserSerializer
-
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
     extend_schema,
     extend_schema_view,
 )
+from rest_framework import generics, status
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .serializers import RegisterSerializer, UserSerializer
 
 # Create your views here.
 
 logger = logging.getLogger(__name__)
+
 
 @extend_schema(
     tags=["auth"],
@@ -45,10 +46,10 @@ logger = logging.getLogger(__name__)
         ),
     ],
 )
-
 class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
+
 
 @extend_schema_view(
     get=extend_schema(
@@ -113,7 +114,6 @@ class RegisterView(generics.CreateAPIView):
         ],
     ),
 )
-
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -127,7 +127,9 @@ class UserProfileView(APIView):
         user = get_object_or_404(User, id=id)
 
         if request.user != user:
-            logger.warning(f"Відмова: користувач id={request.user.id} намагався змінити профіль id={id}")
+            logger.warning(
+                f"Відмова: користувач id={request.user.id} намагався змінити профіль id={id}"
+            )
             return Response(
                 {"error": "Ви не маєте прав редагувати цей профіль"},
                 status=status.HTTP_403_FORBIDDEN,

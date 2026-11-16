@@ -1,10 +1,12 @@
+import logging
+
 from django.utils import timezone
 from rest_framework import serializers
-import logging
 
 from .models import Artist, Category, Event, Venue
 
 logger = logging.getLogger(__name__)
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:

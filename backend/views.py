@@ -1,11 +1,12 @@
+import logging
+
 from django.db.models import ProtectedError
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-import logging
-from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 
 from .models import Artist, Event, Venue
 from .serializers import (
@@ -13,7 +14,6 @@ from .serializers import (
     EventSerializer,
     VenueSerializer,
 )
-
 
 # Create your views here.
 
@@ -23,6 +23,7 @@ E400 = OpenApiResponse(description="Невалідні дані")
 E401 = OpenApiResponse(description="Токен відсутній або невалідний")
 E403 = OpenApiResponse(description="Потрібні права адміністратора")
 E409 = OpenApiResponse(description="Є пов'язані дані, видалити неможливо")
+
 
 @extend_schema_view(
     get=extend_schema(
@@ -40,7 +41,6 @@ E409 = OpenApiResponse(description="Є пов'язані дані, видали�
         responses={201: EventSerializer, 400: E400, 401: E401, 403: E403},
     ),
 )
-
 class EventList(APIView):
     def get_permissions(self):
         if self.request.method == "POST":
@@ -60,29 +60,44 @@ class EventList(APIView):
         logger.info(f"Адміністратор id={request.user.id} створив подію id={event.id}")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
 @extend_schema_view(
     get=extend_schema(
         tags=["events"],
         summary="Отримати подію",
         description="Публічний ендпоінт, автентифікація не потрібна",
         auth=[],
-        responses={200: EventSerializer, 404: OpenApiResponse(description="Подію не знайдено")},
+        responses={
+            200: EventSerializer,
+            404: OpenApiResponse(description="Подію не знайдено"),
+        },
     ),
     put=extend_schema(
         tags=["events"],
         summary="Оновити подію",
         description="Оновити подію може лише адміністратор. Потрібен JWT токен",
         request=EventSerializer,
-        responses={200: EventSerializer, 400: E400, 401: E401, 403: E403, 404: OpenApiResponse(description="Подію не знайдено")},
+        responses={
+            200: EventSerializer,
+            400: E400,
+            401: E401,
+            403: E403,
+            404: OpenApiResponse(description="Подію не знайдено"),
+        },
     ),
     delete=extend_schema(
         tags=["events"],
         summary="Видалити подію",
         description="Видалити подію може лише адміністратор. Потрібен JWT токен",
-        responses={204: OpenApiResponse(description="Подію видалено"), 401: E401, 403: E403, 404: OpenApiResponse(description="Подію не знайдено"), 409: E409},
+        responses={
+            204: OpenApiResponse(description="Подію видалено"),
+            401: E401,
+            403: E403,
+            404: OpenApiResponse(description="Подію не знайдено"),
+            409: E409,
+        },
     ),
 )
-
 class EventDetail(APIView):
     def get_permissions(self):
         if self.request.method in ["PUT", "DELETE"]:
@@ -135,7 +150,9 @@ class ArtistList(APIView):
         serializer = ArtistSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         artist = serializer.save()
-        logger.info(f"Адміністратор id={request.user.id} створив артиста id={artist.id}")
+        logger.info(
+            f"Адміністратор id={request.user.id} створив артиста id={artist.id}"
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -191,7 +208,9 @@ class VenueList(APIView):
         serializer = VenueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         venue = serializer.save()
-        logger.info(f"Адміністратор id={request.user.id} створив майданчик id={venue.id}")
+        logger.info(
+            f"Адміністратор id={request.user.id} створив майданчик id={venue.id}"
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -212,7 +231,9 @@ class VenueDetail(APIView):
         serializer = VenueSerializer(venue, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        logger.info(f"Адміністратор id={request.user.id} оновив майданчик id={venue.id}")
+        logger.info(
+            f"Адміністратор id={request.user.id} оновив майданчик id={venue.id}"
+        )
         return Response(serializer.data)
 
     def delete(self, request, id):
