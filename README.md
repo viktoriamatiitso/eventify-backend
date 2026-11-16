@@ -33,8 +33,7 @@ Authorization: Bearer <ваш_access_token>
 
 ### 📌 Endpoint: Події (Events)
 - **GET `/api/events`**
-  - *Опис:* Отримати список усіх подій з можливістю пошуку, фільтрації та сортування.
-  - *Query Parameters:* `search`, `category_id`, `venue_id`, `sort_by`.
+  - *Опис:* Отримати список усіх подій.
   - *Response Status:* 200 OK
   - *Response Body:* 
     ```json
@@ -307,9 +306,7 @@ Authorization: Bearer <ваш_access_token>
     {
       "username": "viktoria",
       "first_name": "Вікторія",
-      "email": "vika@example.com",
-      "password": "Qwerty123!",
-      "password_confirmation": "Qwerty123!"
+      "email": "vika@example.com"
     }
     ```
   - *Response Body:*
@@ -326,7 +323,7 @@ Authorization: Bearer <ваш_access_token>
 
 ---
 
-### 📌 Endpoint: Кошик (Cart)
+### 📌 Endpoint: Кошик (Cart) (планується)
 - **GET `/api/cart`**
   - *Опис:* Переглянути товари (квитки), додані в кошик.
   - *Response Status:* 200 OK
@@ -340,7 +337,7 @@ Authorization: Bearer <ваш_access_token>
 
 ---
 
-### 📌 Endpoint: Замовлення (Orders)
+### 📌 Endpoint: Замовлення (Orders) (планується)
 - **POST `/api/orders`**
   - *Опис:* Створити замовлення на основі кошика.
   - *Response Status:* 201 Created
@@ -359,6 +356,22 @@ Authorization: Bearer <ваш_access_token>
 - **Статуси помилок доступу:**
   - `401 Unauthorized` - токен відсутній або протух.
   - `403 Forbidden` - недостатньо прав (ролі) для виконання дії або спроба редагування чужого профілю.
+
+---
+
+## 📝 Логування
+
+У проєкті налаштовано логування (`LOGGING` у `config/settings.py`) з виводом у консоль:
+
+| Рівень | Що логується |
+|---|---|
+| `DEBUG` | запити на читання (GET) |
+| `INFO` | створення, оновлення та видалення об'єктів |
+| `WARNING` | відмови (403), конфлікти при видаленні (409), помилки валідації |
+
+Паролі, токени та інші чутливі дані в логи не потрапляють: логуються лише `id` користувачів і об'єктів та причини відмов.
+
+---
 
 ## 🗃️ Схема бази даних
 
@@ -400,7 +413,35 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Запуск міграцій бази даних
+### 4. Налаштування змінних середовища
+
+Скопіюйте файл-приклад та створіть власний `.env`:
+
+- **Windows**:
+```bash
+copy .env.example .env
+```
+
+- **macOS / Linux**:
+```bash
+cp .env.example .env
+```
+
+Згенеруйте новий секретний ключ і вставте його в `.env`:
+
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+| Змінна | Опис | Приклад |
+|---|---|---|
+| `SECRET_KEY` | Секретний ключ Django (унікальний для кожного середовища) | `your-secret-key` |
+| `DEBUG` | Режим налагодження: `True` для розробки, `False` для продакшену | `True` |
+| `ALLOWED_HOSTS` | Дозволені хости через кому, без пробілів | `localhost,127.0.0.1` |
+
+> Файл `.env` містить секрети і додано до `.gitignore`, тому він не потрапляє в репозиторій. У репозиторії лежить лише `.env.example` із заглушками.
+
+### 5. Запуск міграцій бази даних
 
 Створіть структуру бази даних за допомогою міграцій Django:
 
@@ -409,7 +450,7 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 5. Запуск локального сервера
+### 6. Запуск локального сервера
 
 Запустіть сервер для розробки:
 
@@ -418,3 +459,46 @@ python manage.py runserver
 ```
 
 Після цього бекенд буде доступний за адресою: `http://127.0.0.1:8000/`
+
+---
+
+## 🧪 Тестування
+
+Тести написані з використанням `pytest`, `pytest-django` та фікстур. Покрито ресурс користувачів (реєстрація, профіль) та ресурси подій: позитивні й негативні сценарії (400, 401, 403, 404).
+
+**Запуск усіх тестів:**
+
+```bash
+pytest
+```
+
+**Запуск тестів окремої апки:**
+
+```bash
+pytest users/tests
+pytest backend/tests
+```
+
+### Покриття тестами
+
+```bash
+pytest --cov --cov-report=term-missing
+```
+
+---
+
+## 📚 Документація API (OpenAPI)
+
+Документація генерується автоматично за допомогою `drf-spectacular`. Після запуску сервера вона доступна за адресами:
+
+- **Swagger UI:** http://127.0.0.1:8000/api/docs/
+- **ReDoc:** http://127.0.0.1:8000/api/redoc/
+- **OpenAPI-схема:** http://127.0.0.1:8000/api/schema/
+
+Щоб отримати схему у вигляді файлу:
+
+```bash
+python manage.py spectacular --file schema.yml
+```
+
+Для перевірки захищених ендпоінтів у Swagger UI натисніть **Authorize** і вставте access-токен, отриманий через `POST /api/auth/login/`.

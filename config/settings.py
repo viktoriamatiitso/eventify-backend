@@ -184,4 +184,5 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "API для керування подіями, артистами, майданчиками та користувачами.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "REDOC_DIST": "https://cdn.jsdelivr.net/npm/redoc@2.1.5",
 }
