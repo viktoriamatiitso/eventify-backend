@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 import logging
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 
 from .models import Artist, Event, Venue
 from .serializers import (
@@ -13,9 +14,32 @@ from .serializers import (
     VenueSerializer,
 )
 
+
 # Create your views here.
 
 logger = logging.getLogger(__name__)
+
+E400 = OpenApiResponse(description="Невалідні дані")
+E401 = OpenApiResponse(description="Токен відсутній або невалідний")
+E403 = OpenApiResponse(description="Потрібні права адміністратора")
+E409 = OpenApiResponse(description="Є пов'язані дані, видалити неможливо")
+
+@extend_schema_view(
+    get=extend_schema(
+        tags=["events"],
+        summary="Список подій",
+        description="Публічний ендпоінт, автентифікація не потрібна",
+        auth=[],
+        responses={200: EventSerializer(many=True)},
+    ),
+    post=extend_schema(
+        tags=["events"],
+        summary="Створити подію",
+        description="Створити подію може лише адміністратор. Потрібен JWT токен",
+        request=EventSerializer,
+        responses={201: EventSerializer, 400: E400, 401: E401, 403: E403},
+    ),
+)
 
 class EventList(APIView):
     def get_permissions(self):
@@ -36,6 +60,28 @@ class EventList(APIView):
         logger.info(f"Адміністратор id={request.user.id} створив подію id={event.id}")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=["events"],
+        summary="Отримати подію",
+        description="Публічний ендпоінт, автентифікація не потрібна",
+        auth=[],
+        responses={200: EventSerializer, 404: OpenApiResponse(description="Подію не знайдено")},
+    ),
+    put=extend_schema(
+        tags=["events"],
+        summary="Оновити подію",
+        description="Оновити подію може лише адміністратор. Потрібен JWT токен",
+        request=EventSerializer,
+        responses={200: EventSerializer, 400: E400, 401: E401, 403: E403, 404: OpenApiResponse(description="Подію не знайдено")},
+    ),
+    delete=extend_schema(
+        tags=["events"],
+        summary="Видалити подію",
+        description="Видалити подію може лише адміністратор. Потрібен JWT токен",
+        responses={204: OpenApiResponse(description="Подію видалено"), 401: E401, 403: E403, 404: OpenApiResponse(description="Подію не знайдено"), 409: E409},
+    ),
+)
 
 class EventDetail(APIView):
     def get_permissions(self):

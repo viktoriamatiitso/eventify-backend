@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "backend",
     "users",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -169,4 +170,18 @@ LOGGING = {
         "users": {"handlers": ["console"], "level": "DEBUG"},
         "backend": {"handlers": ["console"], "level": "DEBUG"},
     },
+}
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema", 
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Eventify API",
+    "DESCRIPTION": "API для керування подіями, артистами, майданчиками та користувачами.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
